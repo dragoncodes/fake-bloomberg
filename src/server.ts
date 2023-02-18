@@ -26,9 +26,12 @@ import {
   getPriceForInstrument,
   InstrumentNames,
   Instruments,
-} from "./instruments";
+} from "./util/instruments";
+import { QuoteConfigByInstrumentTicker } from "./util/instruments";
 
 // **** Variables **** //
+
+const connectedClients: ConnectedClient[] = [];
 
 const app = express();
 
@@ -104,7 +107,11 @@ app.get("/instruments/:ticker", (req, res) => {
     return;
   }
 
-  const price = getPriceForInstrument();
+  const price = getPriceForInstrument(
+    QuoteConfigByInstrumentTicker[ticker],
+    Math.random(),
+    Math.random()
+  );
 
   res.send({
     name: InstrumentNames[req.param("ticker")],
@@ -112,18 +119,6 @@ app.get("/instruments/:ticker", (req, res) => {
     ask: price.ask,
   });
 });
-
-// Redirect to login if not logged in.
-app.get("/users", (req: Request, res: Response) => {
-  const jwt = req.signedCookies[EnvVars.CookieProps.Key];
-  if (!jwt) {
-    res.redirect("/");
-  } else {
-    res.sendFile("users.html", { root: viewsDir });
-  }
-});
-
-const connectedClients: ConnectedClient[] = [];
 
 webSocket.app.ws("/", (ws, req) => {
   const client = new ConnectedClient(ws);
