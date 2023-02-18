@@ -26,6 +26,7 @@ import {
   getPriceForInstrument,
   InstrumentNames,
   Instruments,
+  InstumentQuoteConfigs,
 } from "./instruments";
 
 // **** Variables **** //
@@ -104,12 +105,16 @@ app.get("/instruments/:ticker", (req, res) => {
     return;
   }
 
-  const price = getPriceForInstrument();
+  const price = getPriceForInstrument(
+    InstumentQuoteConfigs[ticker],
+    Math.random(),
+    Math.random()
+  );
 
   res.send({
     name: InstrumentNames[req.param("ticker")],
-    bid: price.bid,
-    ask: price.ask,
+    buy: price.buy,
+    sell: price.sell,
   });
 });
 

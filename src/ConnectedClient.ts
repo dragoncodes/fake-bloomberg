@@ -1,8 +1,12 @@
 import WebSocket from "ws";
-import { getPriceForInstrument } from "./instruments";
+import {
+  getPriceForInstrument,
+  Instruments,
+  InstumentQuoteConfigs,
+} from "./instruments";
 
 export class ConnectedClient {
-  intervalId: NodeJS.Timer | undefined = undefined;
+  intervalIds: (NodeJS.Timer | undefined)[] = [];
 
   webSocketConnection: WebSocket | undefined = undefined;
 
@@ -11,16 +15,27 @@ export class ConnectedClient {
   }
 
   start() {
-    this.intervalId = setInterval(() => {
-      const price = getPriceForInstrument();
-      this.webSocketConnection?.send(`TSLA|${price.ask}|${price.bid}`);
-    }, 1000);
+    for (let instrument of Instruments) {
+      const intervalId = setInterval(() => {
+        const price = getPriceForInstrument(
+          InstumentQuoteConfigs[instrument],
+          Math.random(),
+          Math.random()
+        );
+
+        this.intervalIds.push(intervalId);
+
+        this.webSocketConnection?.send(
+          `${instrument}|${price.buy}|${price.sell}`
+        );
+      }, InstumentQuoteConfigs[instrument].updateInterval);
+    }
   }
 
   teardown() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
+    this.intervalIds.forEach((intervalId) => {
+      clearInterval(intervalId);
       this.webSocketConnection?.close();
-    }
+    });
   }
 }
